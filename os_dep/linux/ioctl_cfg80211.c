@@ -12,6 +12,7 @@
  * more details.
  *
  *****************************************************************************/
+#include "net/cfg80211.h"
 #define  _IOCTL_CFG80211_C_
 
 #include <drv_types.h>
@@ -5394,8 +5395,10 @@ exit:
 }
 
 static int cfg80211_rtw_change_beacon(struct wiphy *wiphy, struct net_device *ndev,
-		struct cfg80211_beacon_data *info)
+		struct cfg80211_ap_update *update)
 {
+	struct cfg80211_beacon_data *info = &update->beacon;
+
 	int ret = 0;
 	_adapter *adapter = (_adapter *)rtw_netdev_priv(ndev);
 
