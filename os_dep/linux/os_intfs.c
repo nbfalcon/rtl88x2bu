@@ -491,6 +491,10 @@ int rtw_nm = 1;/*noise monitor*/
 module_param(rtw_nm, int, 0644);
 #endif
 
+bool rtw_monitor_fcsfail = false;
+module_param(rtw_monitor_fcsfail, bool, 0644);
+MODULE_PARM_DESC(rtw_monitor_fcsfail, "Enable FCSFAIL in monitor mode (using iw does not work).");
+
 char *ifname = "wlan%d";
 module_param(ifname, charp, 0644);
 MODULE_PARM_DESC(ifname, "The default name to allocate for first interface");
@@ -1462,6 +1466,8 @@ uint loadparam(_adapter *padapter)
 #ifdef CONFIG_BACKGROUND_NOISE_MONITOR
 	registry_par->nm_mode = (u8)rtw_nm;
 #endif
+	registry_par->monitor_fcsfail = rtw_monitor_fcsfail;
+
 	registry_par->reg_rxgain_offset_2g = (u32) rtw_rxgain_offset_2g;
 	registry_par->reg_rxgain_offset_5gl = (u32) rtw_rxgain_offset_5gl;
 	registry_par->reg_rxgain_offset_5gm = (u32) rtw_rxgain_offset_5gm;

@@ -1,5 +1,26 @@
 -----
 
+## Realtek driver for monitor mode/packet injection/wireless MAC research
+
+It compiles on Linux 6.7.
+
+This is an older Realtek driver (not based on mac80211) with some additional monitor-mode features:
+- Unlike the kernel driver (last time I checked), this driver supports packet injection
+- (NEW) Supports receiving packets with a bad checksum
+
+In the future, it would be great to fix the upstream driver instead, since it is much cleaner and based on the newer mac80211 interface.
+
+### Receiving bad packets ("FCSFAIL")
+
+Set the module parameter `rtw_monitor_fcsfail=1` (you can do this using sysfs as well), and re-plug your USB WiFi Adapter. Now you should be able to receive packets with an erronous FCS. Note that `iw dev ... set monitor fcsfail` does not work; fcsfail is ignored here without a warning (you need to use a module parameter).
+
+### (Current) Packet injection caveats
+
+- Specify the destination address to be BROADCAST, (`FF:FF:FF:FF:FF:FF`), otherwise you will get horrible injection rates (< 1Mbps). This will be fixed eventually
+- For injection, all radiotap headers are currently skipped and ignored
+
+These issuea are not fundamental (neither to the driver nor the hardware) however, and can be fixed.
+
 ## rtl88x2bu (88x2bu.ko)
 
 ## Realtek RTL88x2BU Wireless Lan Driver for Linux

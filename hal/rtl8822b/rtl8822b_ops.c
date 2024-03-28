@@ -964,7 +964,7 @@ static void set_opmode_monitor(PADAPTER adapter)
 {
 #ifdef CONFIG_WIFI_MONITOR
 	u8 tmp_8bit;
-	u32 tmp_32bit;
+	u32 set_rcr;
 	struct net_device *ndev = adapter->pnetdev;
 	struct mon_reg_backup *mon = &GET_HAL_DATA(adapter)->mon_backup;
 
@@ -972,14 +972,19 @@ static void set_opmode_monitor(PADAPTER adapter)
 	rtw_hal_get_hwreg(adapter, HW_VAR_RCR, (u8 *)& mon->rcr);
 
 	/* Receive all type */
-	tmp_32bit = BIT_AAP_8822B | BIT_APP_PHYSTS_8822B;
+	set_rcr = BIT_AAP_8822B | BIT_APP_PHYSTS_8822B;
+
+	if (adapter->registrypriv.monitor_fcsfail) {
+		set_rcr |= RCR_ACRC32;
+		RTW_INFO("monitor mode: FCSFAIL");
+	}
 
 	if (ndev->type == ARPHRD_IEEE80211_RADIOTAP) {
 		/* Append FCS */
-		tmp_32bit |= BIT_APP_FCS_8822B;
+		set_rcr |= BIT_APP_FCS_8822B;
 	}
 
-	rtw_hal_set_hwreg(adapter, HW_VAR_RCR, (u8 *)& tmp_32bit);
+	rtw_hal_set_hwreg(adapter, HW_VAR_RCR, (u8 *)& set_rcr);
 
 	if (1)
 		rtw_halmac_config_rx_info(adapter_to_dvobj(adapter),
@@ -1304,7 +1309,7 @@ static void hw_var_set_opmode(PADAPTER adapter, u8 mode)
 		return;
 	}
 
-	/* clear crc bit */
+	/* clear crc bit (note that we don't do this in monitor mode) */
 	if (rtw_hal_rcr_check(adapter, BIT_ACRC32_8822B))
 		rtw_hal_rcr_clear(adapter, BIT_ACRC32_8822B);
 

@@ -453,6 +453,7 @@ struct registry_priv {
 	u32	reg_rxgain_offset_5gl;
 	u32	reg_rxgain_offset_5gm;
 	u32	reg_rxgain_offset_5gh;
+	bool monitor_fcsfail;
 
 #ifdef CONFIG_DFS_MASTER
 	u8 dfs_region_domain;
