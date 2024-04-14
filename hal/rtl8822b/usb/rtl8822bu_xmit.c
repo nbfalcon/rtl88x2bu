@@ -32,6 +32,21 @@ static void update_txdesc_h2c_pkt(struct xmit_frame *pxmitframe, u8 *pmem, s32 s
 	rtl8822b_dbg_dump_tx_desc(padapter, pxmitframe->frame_tag, ptxdesc);
 }
 
+void update_txdesc_injection(u8 *ptxdesc, struct pkt_attrib *pattrib)
+{
+	if (pattrib->sgi && !IS_CCK_RATE(pattrib->rate)) {
+		// SET_TX_DESC_DATA_SHORT_8822B enables SGI if the rate is not CCK;
+		// otherwise, it enables short preamble
+		SET_TX_DESC_DATA_SHORT_8822B(ptxdesc, 1);
+	}
+
+	if (pattrib->ldpc)
+		SET_TX_DESC_DATA_LDPC_8822B(ptxdesc, 1);
+
+	if (pattrib->stbc)
+		SET_TX_DESC_DATA_STBC_8822B(ptxdesc, 1);
+}
+
 static s32 update_txdesc(struct xmit_frame *pxmitframe, u8 *pmem, s32 sz, u8 bagg_pkt)
 {
 	int pull = 0;
@@ -109,17 +124,7 @@ static s32 update_txdesc(struct xmit_frame *pxmitframe, u8 *pmem, s32 sz, u8 bag
 		SET_TX_DESC_HW_SSN_SEL_8822B(ptxdesc, pattrib->hw_ssn_sel);
 		SET_TX_DESC_EN_HWEXSEQ_8822B(ptxdesc, 0);
 
-		// Monitor frames have qos_en = _FALSE
-		if (pattrib->sgi && !IS_CCK_RATE(pattrib->rate)) {
-			// SET_TX_DESC_DATA_SHORT_8822B enables SGI if the rate is not CCK; otherwise, it enables short preamble
-			SET_TX_DESC_DATA_SHORT_8822B(ptxdesc, 1);
-		}
-
-		if (pattrib->ldpc)
-			SET_TX_DESC_DATA_LDPC_8822B(ptxdesc, 1);
-
-		if (pattrib->stbc)
-			SET_TX_DESC_DATA_STBC_8822B(ptxdesc, 1);
+		update_txdesc_injection(ptxdesc, pattrib);
 	} else
 		SET_TX_DESC_SW_SEQ_8822B(ptxdesc, pattrib->seqnum);
 
@@ -209,16 +214,8 @@ static s32 update_txdesc(struct xmit_frame *pxmitframe, u8 *pmem, s32 sz, u8 bag
 					SET_TX_DESC_DISDATAFB_8822B(ptxdesc, 1);
 			}
 
-			if (pattrib->sgi && !IS_CCK_RATE(pattrib->rate)) {
-				// SET_TX_DESC_DATA_SHORT_8822B enables SGI if the rate is not CCK; otherwise, it enables short preamble
-				SET_TX_DESC_DATA_SHORT_8822B(ptxdesc, 1);
-			}
+			update_txdesc_injection(ptxdesc, pattrib);
 
-			if (pattrib->ldpc)
-				SET_TX_DESC_DATA_LDPC_8822B(ptxdesc, 1);
-
-			if (pattrib->stbc)
-				SET_TX_DESC_DATA_STBC_8822B(ptxdesc, 1);
 
 #ifdef CONFIG_WMMPS_STA
 			if (pattrib->trigger_frame)

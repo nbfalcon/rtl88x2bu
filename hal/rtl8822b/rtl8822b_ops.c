@@ -3533,11 +3533,6 @@ static void fill_default_txdesc(struct xmit_frame *pxmitframe, u8 *pbuf)
 					adapter->fix_rate & BIT(7) ? 1 : 0,
 					adapter->data_fb, pbuf);
 
-			if (pattrib->ldpc)
-				SET_TX_DESC_DATA_LDPC_8822B(pbuf, 1);
-			if (pattrib->stbc)
-				SET_TX_DESC_DATA_STBC_8822B(pbuf, 1);
-
 #ifdef CONFIG_CMCC_TEST
 			SET_TX_DESC_DATA_SHORT_8822B(pbuf, 1); /* use cck short premble */
 #endif
