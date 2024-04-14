@@ -4929,7 +4929,7 @@ s32 rtw_monitor_xmit_entry(struct sk_buff *skb, struct net_device *ndev)
 		update_monitor_frame_attrib(padapter, pattrib);
 
 		if (is_broadcast_mac_addr(pwlanhdr->addr3) || is_broadcast_mac_addr(pwlanhdr->addr1))
-			pattrib->rate = MGN_24M;
+			pattrib->rate = MGN_MCS4;
 
 	} else {
 

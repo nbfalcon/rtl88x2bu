@@ -101,11 +101,25 @@ static s32 update_txdesc(struct xmit_frame *pxmitframe, u8 *pmem, s32 sz, u8 bag
 
 	/*offset 12 */
 	if (!pattrib->qos_en) {
+		// NOTE: qos_en = _FALSE for monitor frames
+
 		/* HW sequence, to fix to use 0 queue. todo: 4AC packets to use auto queue select */
 		SET_TX_DESC_DISQSELSEQ_8822B(ptxdesc, 1);
 		SET_TX_DESC_EN_HWSEQ_8822B(ptxdesc, 1);/* Hw set sequence number */
 		SET_TX_DESC_HW_SSN_SEL_8822B(ptxdesc, pattrib->hw_ssn_sel);
 		SET_TX_DESC_EN_HWEXSEQ_8822B(ptxdesc, 0);
+
+		// Monitor frames have qos_en = _FALSE
+		if (pattrib->sgi && !IS_CCK_RATE(pattrib->rate)) {
+			// SET_TX_DESC_DATA_SHORT_8822B enables SGI if the rate is not CCK; otherwise, it enables short preamble
+			SET_TX_DESC_DATA_SHORT_8822B(ptxdesc, 1);
+		}
+
+		if (pattrib->ldpc)
+			SET_TX_DESC_DATA_LDPC_8822B(ptxdesc, 1);
+
+		if (pattrib->stbc)
+			SET_TX_DESC_DATA_STBC_8822B(ptxdesc, 1);
 	} else
 		SET_TX_DESC_SW_SEQ_8822B(ptxdesc, pattrib->seqnum);
 
@@ -193,6 +207,11 @@ static s32 update_txdesc(struct xmit_frame *pxmitframe, u8 *pmem, s32 sz, u8 bag
 
 				if (!padapter->data_fb)
 					SET_TX_DESC_DISDATAFB_8822B(ptxdesc, 1);
+			}
+
+			if (pattrib->sgi && !IS_CCK_RATE(pattrib->rate)) {
+				// SET_TX_DESC_DATA_SHORT_8822B enables SGI if the rate is not CCK; otherwise, it enables short preamble
+				SET_TX_DESC_DATA_SHORT_8822B(ptxdesc, 1);
 			}
 
 			if (pattrib->ldpc)

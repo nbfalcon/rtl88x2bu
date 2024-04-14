@@ -7635,6 +7635,7 @@ void update_monitor_frame_attrib(_adapter *padapter, struct pkt_attrib *pattrib)
 	struct sta_priv		*pstapriv = &padapter->stapriv;
 
 	psta = rtw_get_stainfo(pstapriv, pattrib->ra);
+	// psta is NULL here...
 
 	pattrib->hdrlen = 24;
 	pattrib->nr_frags = 1;
@@ -7674,7 +7675,8 @@ void update_monitor_frame_attrib(_adapter *padapter, struct pkt_attrib *pattrib)
 	pattrib->ht_en = 1;
 	pattrib->bwmode = CHANNEL_WIDTH_20;
 	pattrib->ch_offset = HAL_PRIME_CHNL_OFFSET_DONT_CARE;
-	pattrib->sgi = _FALSE;
+	pattrib->sgi = _TRUE;
+	pattrib->ldpc = _TRUE;
 
 	pattrib->seqnum = pmlmeext->mgnt_seq;
 
