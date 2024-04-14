@@ -1611,6 +1611,9 @@ typedef struct loopbackdata {
 #define ADAPTER_TX_BW_2G(adapter) BW_MODE_2G((adapter)->driver_tx_bw_mode)
 #define ADAPTER_TX_BW_5G(adapter) BW_MODE_5G((adapter)->driver_tx_bw_mode)
 
+#define MON_FLAG_FCSFAIL (1 << 0)
+typedef u8 monitor_flags;
+
 struct _ADAPTER {
 	int	DriverState;/* for disable driver using module, use dongle to replace module. */
 	int	pid[3];/* process id from UI, 0:wps, 1:hostapd, 2:dhcpcd */
@@ -1650,6 +1653,8 @@ struct _ADAPTER {
 #ifdef CONFIG_AP_MODE
 	struct	hostapd_priv	*phostapdpriv;
 #endif
+
+	monitor_flags monitor;
 
 #if defined(CONFIG_P2P) && defined(CONFIG_CONCURRENT_MODE) || defined(CONFIG_IOCTL_CFG80211)
 	struct roch_info rochinfo;

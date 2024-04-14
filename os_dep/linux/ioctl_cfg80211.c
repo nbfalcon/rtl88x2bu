@@ -2676,6 +2676,14 @@ static int cfg80211_rtw_change_iface(struct wiphy *wiphy,
 		rtw_ps_deny_cancel(padapter, PS_DENY_MONITOR_MODE);
 	}
 
+	if (type == NL80211_IFTYPE_MONITOR && (params->flags & MONITOR_FLAG_CHANGED)) {
+		padapter->monitor = 0;
+		if (params->flags & MONITOR_FLAG_FCSFAIL) {
+			printk("Prepare fcsfail");
+			padapter->monitor |= MON_FLAG_FCSFAIL;
+		}
+	}
+
 	switch (type) {
 	case NL80211_IFTYPE_ADHOC:
 		networkType = Ndis802_11IBSS;

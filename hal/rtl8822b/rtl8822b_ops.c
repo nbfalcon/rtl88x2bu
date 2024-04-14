@@ -962,6 +962,8 @@ static void linked_status_check(PADAPTER p)
 
 static void set_opmode_monitor(PADAPTER adapter)
 {
+	RTW_INFO("set_opmode_monitor");
+
 #ifdef CONFIG_WIFI_MONITOR
 	u8 tmp_8bit;
 	u32 set_rcr;
@@ -974,7 +976,8 @@ static void set_opmode_monitor(PADAPTER adapter)
 	/* Receive all type */
 	set_rcr = BIT_AAP_8822B | BIT_APP_PHYSTS_8822B;
 
-	if (adapter->registrypriv.monitor_fcsfail) {
+	if ((adapter->monitor & MON_FLAG_FCSFAIL)
+		|| adapter->registrypriv.monitor_fcsfail) {
 		set_rcr |= RCR_ACRC32;
 		RTW_INFO("monitor mode: FCSFAIL");
 	}

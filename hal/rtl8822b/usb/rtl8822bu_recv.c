@@ -113,7 +113,8 @@ int recvbuf2recvframe(PADAPTER padapter, void *ptr)
 
 		pattrib = &precvframe->u.hdr.attrib;
 
-		if ((padapter->registrypriv.mp_mode == 0) && (!padapter->registrypriv.monitor_fcsfail)
+		if ((padapter->registrypriv.mp_mode == 0)
+			&& !(padapter->registrypriv.monitor_fcsfail || (padapter->monitor & MON_FLAG_FCSFAIL))
 			&& ((pattrib->crc_err) || (pattrib->icv_err))) {
 			RTW_INFO("%s: RX Warning! crc_err=%d icv_err=%d, skip!\n", __func__, pattrib->crc_err, pattrib->icv_err);
 
