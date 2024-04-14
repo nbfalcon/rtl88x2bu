@@ -7662,21 +7662,11 @@ void update_monitor_frame_attrib(_adapter *padapter, struct pkt_attrib *pattrib)
 		pattrib->raid = RATEID_IDX_BGN_40M_1SS;
 #endif
 
-#ifdef CONFIG_80211AC_VHT
-	pattrib->rate = MGN_VHT1SS_MCS9;
-#else
-	pattrib->rate = MGN_MCS7;
-#endif
-
 	pattrib->encrypt = _NO_PRIVACY_;
 	pattrib->bswenc = _FALSE;
 
 	pattrib->qos_en = _FALSE;
 	pattrib->ht_en = 1;
-	pattrib->bwmode = CHANNEL_WIDTH_20;
-	pattrib->ch_offset = HAL_PRIME_CHNL_OFFSET_DONT_CARE;
-	pattrib->sgi = _TRUE;
-	pattrib->ldpc = _TRUE;
 
 	pattrib->seqnum = pmlmeext->mgnt_seq;
 

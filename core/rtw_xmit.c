@@ -4859,6 +4859,98 @@ static void do_queue_select(_adapter	*padapter, struct pkt_attrib *pattrib)
 	}
 }
 
+static int update_pattrib_from_radiotap(struct pkt_attrib *pattrib, struct sk_buff *skb) {
+	struct ieee80211_radiotap_header *rtap_hdr;
+	struct ieee80211_radiotap_iterator iterator;
+
+	int rtap_len;
+	int result;
+
+	// Radiotap: defaults
+	pattrib->bwmode = CHANNEL_WIDTH_20;
+	pattrib->ch_offset = HAL_PRIME_CHNL_OFFSET_DONT_CARE;
+	pattrib->sgi = _FALSE;
+	pattrib->ldpc = _FALSE;
+
+	rtap_len = ieee80211_get_radiotap_len(skb->data);
+	if (rtap_len > skb->len)
+		return 1;
+
+	rtap_hdr = (struct ieee80211_radiotap_header *)skb->data;
+	if ((result = ieee80211_radiotap_iterator_init(&iterator, rtap_hdr, rtap_len, NULL)))
+		return result;
+
+	while (!ieee80211_radiotap_iterator_next(&iterator)) {
+		switch (iterator.this_arg_index) {
+		case IEEE80211_RADIOTAP_RATE:
+			// This is basic 802.11b/g rate; use MCS/VHT for higher rates
+			switch (*iterator.this_arg) {
+#define MGN_RATE_LOOKUP(rate_mbit) case (rate_mbit * 2): pattrib->rate = MGN_##rate_mbit##M; break;
+				MGN_RATE_LOOKUP(1)
+				MGN_RATE_LOOKUP(2)
+				case 11: /* 5.5mbit; 5.5MBit/512kBit = 11 */ pattrib->rate = MGN_5_5M; break;
+				MGN_RATE_LOOKUP(6)
+				MGN_RATE_LOOKUP(9)
+				MGN_RATE_LOOKUP(11)
+				MGN_RATE_LOOKUP(12)
+				MGN_RATE_LOOKUP(18)
+				MGN_RATE_LOOKUP(24)
+				MGN_RATE_LOOKUP(36)
+				MGN_RATE_LOOKUP(48)
+				MGN_RATE_LOOKUP(54)
+			}
+			break;
+
+		case IEEE80211_RADIOTAP_MCS: {
+			printk("radiotap: MCS\n");
+			u8 mcs_have = iterator.this_arg[0];
+			pattrib->rate = MGN_MCS4;
+			if (mcs_have & IEEE80211_RADIOTAP_MCS_HAVE_BW) {
+				u8 bw = (iterator.this_arg[1] &
+					 IEEE80211_RADIOTAP_MCS_BW_MASK);
+				u8 ch_offset = 0;
+				if (bw == IEEE80211_RADIOTAP_MCS_BW_40) {
+					pattrib->bwmode = CHANNEL_WIDTH_40;
+				} else if (bw == IEEE80211_RADIOTAP_MCS_BW_20L) {
+					pattrib->bwmode = CHANNEL_WIDTH_20;
+					pattrib->ch_offset = HAL_PRIME_CHNL_OFFSET_LOWER;
+				} else if (bw == IEEE80211_RADIOTAP_MCS_BW_20U) {
+					pattrib->bwmode = CHANNEL_WIDTH_20;
+					pattrib->ch_offset = HAL_PRIME_CHNL_OFFSET_UPPER;
+				}
+			}
+			if (mcs_have & IEEE80211_RADIOTAP_MCS_HAVE_MCS) {
+				u8 fixed_rate = iterator.this_arg[2] & 0x7f;
+				if (fixed_rate > 31) {
+					fixed_rate = 0;
+				}
+				pattrib->rate = MGN_MCS0 + fixed_rate;
+			}
+			if ((mcs_have & IEEE80211_RADIOTAP_MCS_HAVE_GI) &&
+			    (iterator.this_arg[1] &
+			     IEEE80211_RADIOTAP_MCS_SGI)) {
+				pattrib->sgi = _TRUE;
+			}
+			if ((mcs_have & IEEE80211_RADIOTAP_MCS_HAVE_FEC) &&
+			    (iterator.this_arg[1] &
+			     IEEE80211_RADIOTAP_MCS_FEC_LDPC)) {
+				pattrib->ldpc = _TRUE;
+			}
+			if (mcs_have & IEEE80211_RADIOTAP_MCS_HAVE_STBC) {
+				u8 stbc = (iterator.this_arg[1] &
+					   IEEE80211_RADIOTAP_MCS_STBC_MASK) >>
+					  IEEE80211_RADIOTAP_MCS_STBC_SHIFT;
+				pattrib->stbc = !!stbc;
+			}
+		} break;
+
+		// TODO: Add VHT
+		}
+	}
+
+	return 0;
+}
+
 /*
  * The main transmit(tx) entry
  *
@@ -4919,21 +5011,25 @@ s32 rtw_monitor_xmit_entry(struct sk_buff *skb, struct net_device *ndev)
 //	_rtw_memcpy(pframe, (void *)checking, len);
 	_rtw_pktfile_read(&pktfile, pframe, len);
 
-
-	/* Check DATA/MGNT frames */
+	pattrib = &pmgntframe->attrib;
 	pwlanhdr = (struct rtw_ieee80211_hdr *)pframe;
 	frame_ctl = le16_to_cpu(pwlanhdr->frame_ctl);
+
+	/* Check DATA/MGNT frames */
 	if ((frame_ctl & RTW_IEEE80211_FCTL_FTYPE) == RTW_IEEE80211_FTYPE_DATA) {
-
-		pattrib = &pmgntframe->attrib;
-		update_monitor_frame_attrib(padapter, pattrib);
-
 		if (is_broadcast_mac_addr(pwlanhdr->addr3) || is_broadcast_mac_addr(pwlanhdr->addr1))
 			pattrib->rate = MGN_MCS4;
 
-	} else {
+		if (update_pattrib_from_radiotap(pattrib, skb)) {
+			goto fail;
+		}
 
-		pattrib = &pmgntframe->attrib;
+		update_monitor_frame_attrib(padapter, pattrib);
+	} else {
+		if (update_pattrib_from_radiotap(pattrib, skb)) {
+			goto fail;
+		}
+
 		update_mgntframe_attrib(padapter, pattrib);
 
 	}
