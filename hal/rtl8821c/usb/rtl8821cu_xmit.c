@@ -117,6 +117,8 @@ static s32 update_txdesc(struct xmit_frame *pxmitframe, u8 *pmem, s32 sz, u8 bag
 		SET_TX_DESC_EN_HWSEQ_8821C(ptxdesc, 1); /* Hw set sequence number */
 		SET_TX_DESC_HW_SSN_SEL_8821C(ptxdesc, pattrib->hw_ssn_sel);
 		SET_TX_DESC_EN_HWEXSEQ_8821C(ptxdesc, 0);
+
+		rtl8821cu_update_txdesc_injection(ptxdesc, pattrib);
 	} else
 		SET_TX_DESC_SW_SEQ_8821C(ptxdesc, pattrib->seqnum);
 
@@ -236,12 +238,6 @@ static s32 update_txdesc(struct xmit_frame *pxmitframe, u8 *pmem, s32 sz, u8 bag
 				if (!padapter->data_fb)
 					SET_TX_DESC_DISDATAFB_8821C(ptxdesc, 1);
 			}
-
-			if (pattrib->ldpc)
-				SET_TX_DESC_DATA_LDPC_8821C(ptxdesc, 1);
-
-			if (pattrib->stbc)
-				SET_TX_DESC_DATA_STBC_8821C(ptxdesc, 1);
 
 #ifdef CONFIG_WMMPS_STA
 			if (pattrib->trigger_frame)

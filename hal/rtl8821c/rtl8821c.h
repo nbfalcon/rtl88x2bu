@@ -67,6 +67,7 @@ u8 rtl8821c_gethaldefvar(PADAPTER, HAL_DEF_VARIABLE, void *pval);
 void rtl8821c_set_hal_ops(PADAPTER);
 
 /* tx */
+void rtl8821cu_update_txdesc_injection(u8 *ptxdesc, struct pkt_attrib *pattrib);
 void rtl8821c_init_xmit_priv(_adapter *adapter);
 void rtl8821c_fill_txdesc_sectype(struct pkt_attrib *, u8 *ptxdesc);
 void rtl8821c_fill_txdesc_vcs(PADAPTER, struct pkt_attrib *, u8 *ptxdesc);
