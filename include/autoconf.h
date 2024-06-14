@@ -25,9 +25,6 @@
 #define DRV_NAME "rtl88x2bu"
 
 /* Set CONFIG_RTL8822B from Makefile */
-#ifndef CONFIG_RTL8822B
-#define CONFIG_RTL8822B
-#endif
 #define CONFIG_USB_HCI	1
 #define PLATFORM_LINUX	1
 

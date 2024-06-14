@@ -1,8 +1,8 @@
 *.o
 *.cmd
-88x2bu.ko
-88x2bu.mod
-88x2bu.mod.c
+*.ko
+*.mod
+*.mod.c
 Module.symvers
 modules.order
 
