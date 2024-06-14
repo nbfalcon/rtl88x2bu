@@ -358,11 +358,7 @@ struct rtw_usb_drv usb_drv = {
 	.usbdrv.reset_resume   = rtw_resume,
 #endif
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 19))
-	.usbdrv.drvwrap.driver.shutdown = rtw_dev_shutdown,
-#else
 	.usbdrv.driver.shutdown = rtw_dev_shutdown,
-#endif
 };
 
 static inline int RT_usb_endpoint_dir_in(const struct usb_endpoint_descriptor *epd)
