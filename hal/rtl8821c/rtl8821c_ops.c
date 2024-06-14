@@ -2982,21 +2982,6 @@ void rtl8821c_prepare_mp_txdesc(PADAPTER adapter, struct mp_priv *pmp_priv)
 }
 #endif /* CONFIG_MP_INCLUDED */
 
-void rtl8821cu_update_txdesc_injection(u8 *ptxdesc, struct pkt_attrib *pattrib)
-{
-	if (pattrib->sgi && !IS_CCK_RATE(pattrib->rate)) {
-		// SET_TX_DESC_DATA_SHORT_8822B enables SGI if the rate is not CCK;
-		// otherwise, it enables short preamble
-		SET_TX_DESC_DATA_SHORT_8821C(ptxdesc, 1);
-	}
-
-	if (pattrib->ldpc)
-		SET_TX_DESC_DATA_LDPC_8821C(ptxdesc, 1);
-
-	if (pattrib->stbc)
-		SET_TX_DESC_DATA_STBC_8821C(ptxdesc, 1);
-}
-
 #define OFFSET_SZ	0
 static void fill_default_txdesc(struct xmit_frame *pxmitframe, u8 *pbuf)
 {
@@ -3087,7 +3072,7 @@ static void fill_default_txdesc(struct xmit_frame *pxmitframe, u8 *pbuf)
 		SET_TX_DESC_HW_SSN_SEL_8821C(pbuf, pattrib->hw_ssn_sel);
 		SET_TX_DESC_EN_HWEXSEQ_8821C(pbuf, 0);
 
-		rtl8821cu_update_txdesc_injection(pbuf, pattrib);
+		rtw_update_txdesc_injection(pbuf, pattrib);
 	} else
 		SET_TX_DESC_SW_SEQ_8821C(pbuf, pattrib->seqnum);
 

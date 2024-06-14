@@ -444,6 +444,8 @@ struct pkt_attrib {
 	u8   mbssid;
 	u8	ldpc;
 	u8	stbc;
+	// TODO: investigate; does not work?? (I.e. can't see packets)
+	u8 greenfield;
 #ifdef CONFIG_WMMPS_STA
 	u8	trigger_frame;
 #endif /* CONFIG_WMMPS_STA */
@@ -929,6 +931,8 @@ extern void rtw_update_protection(_adapter *padapter, u8 *ie, uint ie_len);
 
 extern s32 rtw_make_wlanhdr(_adapter *padapter, u8 *hdr, struct pkt_attrib *pattrib);
 extern s32 rtw_put_snap(u8 *data, u16 h_proto);
+
+void rtw_update_txdesc_injection(u8 *ptxdesc, struct pkt_attrib *pattrib);
 
 extern struct xmit_frame *rtw_alloc_xmitframe(struct xmit_priv *pxmitpriv, u16 os_qid);
 struct xmit_frame *rtw_alloc_xmitframe_ext(struct xmit_priv *pxmitpriv);

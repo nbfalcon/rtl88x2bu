@@ -4859,6 +4859,22 @@ static void do_queue_select(_adapter	*padapter, struct pkt_attrib *pattrib)
 	}
 }
 
+void rtw_update_txdesc_injection(u8 *ptxdesc, struct pkt_attrib *pattrib)
+{
+	if (pattrib->sgi && !IS_CCK_RATE(pattrib->rate)) {
+		// SET_TX_DESC_DATA_SHORT_8822B enables SGI if the rate is not CCK;
+		// otherwise, it enables short preamble
+		SET_TX_DESC_DATA_SHORT_8821C(ptxdesc, 1);
+	}
+
+	if (pattrib->ldpc)
+		SET_TX_DESC_DATA_LDPC(ptxdesc, 1);
+	if (pattrib->stbc)
+		SET_TX_DESC_DATA_STBC(ptxdesc, 1);
+	if (pattrib->greenfield)
+		SET_TX_DESC_GF(ptxdesc, 1);
+}
+
 static int update_pattrib_from_radiotap(struct pkt_attrib *pattrib, struct sk_buff *skb) {
 	struct ieee80211_radiotap_header *rtap_hdr;
 	struct ieee80211_radiotap_iterator iterator;
@@ -4871,6 +4887,7 @@ static int update_pattrib_from_radiotap(struct pkt_attrib *pattrib, struct sk_bu
 	pattrib->ch_offset = HAL_PRIME_CHNL_OFFSET_DONT_CARE;
 	pattrib->sgi = _FALSE;
 	pattrib->ldpc = _FALSE;
+	pattrib->greenfield = _FALSE;
 
 	rtap_len = ieee80211_get_radiotap_len(skb->data);
 	if (rtap_len > skb->len)
@@ -4930,6 +4947,10 @@ static int update_pattrib_from_radiotap(struct pkt_attrib *pattrib, struct sk_bu
 			    (iterator.this_arg[1] &
 			     IEEE80211_RADIOTAP_MCS_SGI)) {
 				pattrib->sgi = _TRUE;
+			}
+			if ((mcs_have & IEEE80211_RADIOTAP_MCS_HAVE_FMT)
+				&& (iterator.this_arg[1] & IEEE80211_RADIOTAP_MCS_FMT_GF)) {
+				pattrib->greenfield = _TRUE;
 			}
 			if ((mcs_have & IEEE80211_RADIOTAP_MCS_HAVE_FEC) &&
 			    (iterator.this_arg[1] &
